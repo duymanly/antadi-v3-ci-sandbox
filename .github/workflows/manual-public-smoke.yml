@@ -1,0 +1,39 @@
+name: Manual synthetic CI smoke
+
+# Independent probe only: explicit manual dispatch, never on push/PR.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: isolated-synthetic-ci-smoke
+  cancel-in-progress: false
+
+jobs:
+  node24-browser-sqlite:
+    if: github.repository == 'duymanly/antadi-v3-ci-sandbox'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      CI: 'true'
+    steps:
+      - name: Checkout this synthetic-only sandbox
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned test dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Install Chromium on standard runner
+        run: npx playwright install --with-deps chromium
+      - name: Test Node24, SQLite FTS5 and Chromium desktop/mobile
+        run: npm run test:all
+      - name: Report strictly synthetic scope
+        if: always()
+        run: |
+          echo 'This run tests only fictional records in this public-safe sandbox. No private Antadi repository, pricing, secrets, customer records, production deployment, or D1 connection were accessed.' >> "$GITHUB_STEP_SUMMARY"
