@@ -16,7 +16,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Install QA dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+
       - name: Verify pinned QA dependencies
         run: |
           node --input-type=module <<'NODE'
@@ -26,7 +29,42 @@ jobs:
             if (actual !== expected) throw new Error(`${pkg}_VERSION_MISMATCH:${actual}`);
           }
           NODE
-      - run: node -e "console.log(process.version)"
-      - run: npm run qa:v3:all
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:browser
+
+      - name: Verify Node runtime
+        run: |
+          node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1); console.log(process.version)"
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify Chromium executable
+        run: |
+          node --input-type=module <<'NODE'
+          import {chromium} from 'playwright';
+          const path = chromium.executablePath();
+          console.log(path);
+          if (!path) throw new Error('CHROMIUM_EXECUTABLE_MISSING');
+          NODE
+
+      - name: Run V3 QA contract
+        run: npm run qa:v3:all
+
+      - name: Run browser QA
+        run: npm run test:browser
+
+      - name: Generate QA summary
+        if: always()
+        run: |
+          mkdir -p qa-artifacts
+          {
+            echo 'Antadi V3 Public QA Adapter'
+            echo "Commit: $GITHUB_SHA"
+            echo "Node: $(node --version)"
+          } > qa-artifacts/summary.txt
+
+      - name: Upload QA summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: antadi-v3-public-qa-summary
+          path: qa-artifacts/summary.txt
