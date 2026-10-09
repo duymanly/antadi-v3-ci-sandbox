@@ -23,19 +23,29 @@ jobs:
       - name: Verify pinned QA dependencies
         run: |
           node --input-type=module <<'NODE'
-          import {readFile} from 'node:fs/promises';
+          import {readFile, access} from 'node:fs/promises';
+          import {constants} from 'node:fs';
+          const lock = JSON.parse(await readFile('package-lock.json','utf8'));
           for (const [pkg, expected] of [['jose','6.2.12'],['playwright','1.64.0']]) {
             const actual = JSON.parse(await readFile(`node_modules/${pkg}/package.json`,'utf8')).version;
-            if (actual !== expected) throw new Error(`${pkg}_VERSION_MISMATCH:${actual}`);
+            if (actual !== expected || lock.packages[`node_modules/${pkg}`]?.version !== expected)
+              throw new Error(`${pkg}_VERSION_MISMATCH:${actual}`);
           }
+          for (const [pkg, command] of [['playwright','playwright'],['playwright-core','playwright-core']]) {
+            if (lock.packages[`node_modules/${pkg}`]?.bin?.[command] !== 'cli.js')
+              throw new Error(`LOCKFILE_MISSING_CLI_BIN:${pkg}`);
+          }
+          await access('node_modules/.bin/playwright', constants.X_OK);
+          console.log('LOCAL_PLAYWRIGHT_CLI_READY');
           NODE
+          ./node_modules/.bin/playwright --version
 
       - name: Verify Node runtime
         run: |
           node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1); console.log(process.version)"
 
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: ./node_modules/.bin/playwright install --with-deps chromium
 
       - name: Verify Chromium executable
         run: |
