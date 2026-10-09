@@ -39,6 +39,6 @@ test('fixture and dependency graph remain synthetic and standalone',()=>{
   assert.match(fixture,/Example City/);
   assert.match(fixture,/:memory:/);
   assert.doesNotMatch(fixture,/https?:\/\//i);
-  assert.equal(Object.keys(packageJson.devDependencies).join(','),'playwright');
+  assert.equal(Object.keys(packageJson.devDependencies).sort().join(','),'jose,playwright');
   assert.equal(packageJson.private,true);
 });
