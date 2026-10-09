@@ -42,3 +42,25 @@ test('fixture and dependency graph remain synthetic and standalone',()=>{
   assert.equal(Object.keys(packageJson.devDependencies).sort().join(','),'jose,playwright');
   assert.equal(packageJson.private,true);
 });
+
+test('both public QA workflows enforce pinned offline-only tooling and read-only boundaries',()=>{
+  const primary=readFileSync(
+    new URL('../.github/workflows/v3-public-qa.yml',import.meta.url),'utf8'
+  );
+  for(const yaml of [workflow,primary]){
+    assert.match(yaml,/contents: read/);
+    assert.match(yaml,/persist-credentials: false/);
+    assert.match(yaml,/github\\.repository == 'duymanly\\/antadi-v3-ci-sandbox'/);
+    assert.match(yaml,/npm ci --ignore-scripts --no-audit --no-fund/);
+    assert.match(yaml,/\\.\\/node_modules\\/\\.bin\\/playwright install --with-deps chromium/);
+    assert.doesNotMatch(yaml,/\\$\\{\\{\\s*secrets\\./);
+    assert.doesNotMatch(yaml,/\\b(?:wrangler deploy|git clone|npm publish)\\b/i);
+  }
+  const lock=JSON.parse(readFileSync(new URL('../package-lock.json',import.meta.url),'utf8'));
+  assert.equal(lock.lockfileVersion,3);
+  assert.equal(lock.packages['node_modules/jose']?.version,'6.2.12');
+  assert.equal(lock.packages['node_modules/playwright']?.version,'1.64.0');
+  assert.equal(lock.packages['node_modules/playwright-core']?.version,'1.64.0');
+  assert.equal(lock.packages['node_modules/playwright']?.bin?.playwright,'cli.js');
+  assert.equal(lock.packages['node_modules/playwright-core']?.bin?.['playwright-core'],'cli.js');
+});
