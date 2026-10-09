@@ -1,0 +1,23 @@
+name: Antadi V3 Public QA Adapter
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  public-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --ignore-scripts --no-audit --no-fund
+      - run: node -e "console.log(process.version)"
+      - run: npm run qa:v3:all
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
