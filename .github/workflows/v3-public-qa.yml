@@ -17,6 +17,15 @@ jobs:
         with:
           node-version: '24'
       - run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Verify pinned QA dependencies
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFile} from 'node:fs/promises';
+          for (const [pkg, expected] of [['jose','6.2.12'],['playwright','1.64.0']]) {
+            const actual = JSON.parse(await readFile(`node_modules/${pkg}/package.json`,'utf8')).version;
+            if (actual !== expected) throw new Error(`${pkg}_VERSION_MISMATCH:${actual}`);
+          }
+          NODE
       - run: node -e "console.log(process.version)"
       - run: npm run qa:v3:all
       - run: npx playwright install --with-deps chromium
