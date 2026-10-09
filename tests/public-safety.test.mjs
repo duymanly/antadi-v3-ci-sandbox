@@ -43,6 +43,7 @@ test('fixture and dependency graph remain synthetic and standalone',()=>{
   assert.equal(packageJson.private,true);
 });
 
+
 test('both public QA workflows enforce pinned offline-only tooling and read-only boundaries',()=>{
   const primary=readFileSync(
     new URL('../.github/workflows/v3-public-qa.yml',import.meta.url),'utf8'
@@ -50,11 +51,11 @@ test('both public QA workflows enforce pinned offline-only tooling and read-only
   for(const yaml of [workflow,primary]){
     assert.match(yaml,/contents: read/);
     assert.match(yaml,/persist-credentials: false/);
-    assert.match(yaml,/github\\.repository == 'duymanly\\/antadi-v3-ci-sandbox'/);
+    assert.match(yaml,/github\.repository == 'duymanly\/antadi-v3-ci-sandbox'/);
     assert.match(yaml,/npm ci --ignore-scripts --no-audit --no-fund/);
-    assert.match(yaml,/\\.\\/node_modules\\/\\.bin\\/playwright install --with-deps chromium/);
-    assert.doesNotMatch(yaml,/\\$\\{\\{\\s*secrets\\./);
-    assert.doesNotMatch(yaml,/\\b(?:wrangler deploy|git clone|npm publish)\\b/i);
+    assert.match(yaml,/\.\/node_modules\/\.bin\/playwright install --with-deps chromium/);
+    assert.doesNotMatch(yaml,/\$\{\{\s*secrets\./);
+    assert.doesNotMatch(yaml,/\b(?:wrangler deploy|git clone|npm publish)\b/i);
   }
   const lock=JSON.parse(readFileSync(new URL('../package-lock.json',import.meta.url),'utf8'));
   assert.equal(lock.lockfileVersion,3);
