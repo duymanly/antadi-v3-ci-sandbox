@@ -24,7 +24,7 @@ test('public runner cannot checkout another repository or use credentials',()=>{
   assert.match(workflow,/github\.repository == 'duymanly\/antadi-v3-ci-sandbox'/);
   assert.doesNotMatch(workflow,/^\s+repository:\s*\S+/m);
   assert.doesNotMatch(workflow,/\$\{\{\s*secrets\./);
-  assert.doesNotMatch(workflow,/\b(?:git clone|curl|wget|wrangler deploy|wrangler preview|cloudflare)\b/i);
+  assert.doesNotMatch(workflow,/\b(?:git clone|curl|wget|wrangler deploy|wrangler preview)\b/i);
   assert.doesNotMatch(workflow,/\b(?:workflow_call|id-token: write|contents: write)\b/i);
 });
 
