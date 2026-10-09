@@ -1,6 +1,6 @@
 {
-  "name": "generic-public-ci-sandbox",
-  "version": "1.0.0",
+  "name": "antadi-v3-public-qa-adapter",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -9,9 +9,12 @@
   "scripts": {
     "test": "node --test tests/node.test.mjs",
     "test:browser": "node --test tests/browser.test.mjs",
-    "test:all": "node --test tests/*.test.mjs"
+    "test:all": "node --test tests/*.test.mjs",
+    "qa:v3:security": "node --test tests/v3-security-fixture.test.mjs",
+    "qa:v3:all": "npm run test:all && npm run qa:v3:security"
   },
   "devDependencies": {
-    "playwright": "1.56.1"
+    "jose": "6.2.12",
+    "playwright": "1.64.0"
   }
 }
