@@ -1,21 +1,26 @@
-# Independent CI Smoke — Synthetic Only
+# Public Free CI — Independent Synthetic Smoke
 
-This repository is a **standalone, public-safe test of GitHub Actions availability**. It uses fictional hotel names, made-up locations and intentionally fake private canary values. There is **no copied Antadi application code**, canonical pricing data, customers, credentials or private repository checkout.
+This repository is a **public, standalone, fictional test fixture** to exercise a free standard GitHub runner. It is **not** the Antadi V3 application, and never imports, downloads, checks out or tests private Antadi source code, real prices, employees, bookings, customers, tokens or Cloudflare databases.
 
-## What the experiment verifies
+## What is now automated
 
-- Node.js 24 and built-in `node:sqlite` with SQLite FTS5.
-- A synthetic search function that does not disclose internal columns.
-- Playwright Chromium at desktop (1280px) and mobile (390px) widths.
-- Whether a public standard GitHub-hosted runner is actually assigned while the account's private-repo Actions are billing-blocked.
+- A push to **main** automatically runs tests **only** when a source file, a test file, package.json, or this workflow changes.
+- Manual `workflow_dispatch` is still available; PRs and forks do not trigger this workflow.
+- Only this repository is checked out; token persistence is disabled; permissions are `contents: read`; no secrets or deploy commands are allowed.
+- Node 24 + `node:sqlite` FTS5 + Chromium at desktop/mobile sizes, plus public-only workflow security tests.
+- A 12-minute job timeout and concurrency cancellation minimize wasted runner time.
 
-## Run policy
+## Important limits
 
-The GitHub workflow is **`workflow_dispatch` only**. Uploads and pushes must not trigger tests. It has `contents: read`, does not use secrets, does not deploy, and has a 12-minute timeout.
+**Passing public CI proves only generic open-source runner and fictional search/SQL/UI behavior.** It does **not** prove private Antadi code safety, canonical pricing accuracy, Cloudflare Access identity, tenant scoping, D1 live state, or deployment readiness. All real Internal V3 gates stay in the private repository and authorized private runtime.
 
-To run after this repository is **Public**, open **Actions → Manual synthetic CI smoke → Run workflow** once, and inspect job steps. Do not run it while the repo is private/billing-blocked.
+## Safety policy
 
-Alternatively, on a local Node24 environment run:
+Never put Antadi proprietary source, pricing tables, commercial terms, personal data, internal URLs, credentials, secrets or a private repository checkout into public CI. Changes to the public workflow must stay reviewable; no private workflow is delegated to this repository. Do not change repository visibility back to Private while trying to use free public runners.
+
+## Manual local verification
+
+Requires Node 24 and Playwright Chromium:
 
 ```bash
 npm install --ignore-scripts --no-audit --no-fund
@@ -23,8 +28,4 @@ npx playwright install chromium
 npm run test:all
 ```
 
-A passing run demonstrates the generic CI environment, **not** Antadi V3 private app correctness, price parity, secure internal login, or live Cloudflare D1 acceptance.
-
-## Security
-
-Never add a private app repository as a checkout target, artifact, submodule or remote dependency. No private token, real hotel pricing, personal data, operational URL or commercial source files may enter this repository. Repository visibility changes require the owner's action in GitHub.
+No paid service or direct Cloudflare integration is required.

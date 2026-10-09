@@ -1,15 +1,24 @@
-name: Manual synthetic CI smoke
+name: Public synthetic CI smoke
 
-# Independent probe only: explicit manual dispatch, never on push/PR.
+# Only fictional, standalone code. Do NOT checkout the private Antadi repo.
+# Automate small safe changes on main; no PR events, secrets, or deployment.
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/manual-public-smoke.yml'
+      - 'src/**'
+      - 'tests/**'
+      - 'package.json'
 
 permissions:
   contents: read
 
 concurrency:
-  group: isolated-synthetic-ci-smoke
-  cancel-in-progress: false
+  group: public-synthetic-ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   node24-browser-sqlite:
@@ -19,7 +28,7 @@ jobs:
     env:
       CI: 'true'
     steps:
-      - name: Checkout this synthetic-only sandbox
+      - name: Checkout synthetic sandbox only
         uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -31,9 +40,9 @@ jobs:
         run: npm install --ignore-scripts --no-audit --no-fund
       - name: Install Chromium on standard runner
         run: npx playwright install --with-deps chromium
-      - name: Test Node24, SQLite FTS5 and Chromium desktop/mobile
+      - name: Test standalone public-only Node24 SQLite Chromium contracts
         run: npm run test:all
       - name: Report strictly synthetic scope
         if: always()
         run: |
-          echo 'This run tests only fictional records in this public-safe sandbox. No private Antadi repository, pricing, secrets, customer records, production deployment, or D1 connection were accessed.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Only independent fictional records were tested; this does not validate Antadi V3 private code, production prices, login, live Cloudflare D1, or employee access.' >> "$GITHUB_STEP_SUMMARY"
